@@ -54,6 +54,7 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
   const [score, setScore] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Always have enough words for the timer (estimate 2 words per second)
   const INITIAL_WORD_COUNT = 150;
@@ -133,6 +134,15 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
     if (e.key === 'Tab') {
       e.preventDefault();
     }
+  };
+
+  const handleTypingAreaClick = () => {
+    inputRef.current?.focus();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+    calculateStats(e.target.value);
   };
 
   // Character-based stats and accuracy (MonkeyType style)
@@ -224,7 +234,7 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
     const wordsArr = words.split(' ');
     const inputWords = input.split(' ');
     const currentWordIdx = inputWords.length - 1;
-    let charGlobalIdx = 0;
+   
 
     return (
       <div
@@ -233,7 +243,20 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
         className="w-full flex flex-col items-center justify-center outline-none"
         style={{ minHeight: '180px', width: '100%', boxSizing: 'border-box', outline: 'none', border: 'none', boxShadow: 'none', background: 'none' }}
         onKeyDown={handleKeyDown}
+        onClick={handleTypingAreaClick}
       >
+        {/* Visually hidden input for mobile keyboard support */}
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={handleInputChange}
+          className="absolute opacity-0 pointer-events-none w-0 h-0"
+          tabIndex={-1}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
         <div
           className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-wrap gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-hidden dark:shadow-none"
           style={{ wordBreak: 'break-word', lineHeight: '2.2rem', letterSpacing: '0.03em', border: 'none', boxShadow: 'none', outline: 'none', background: 'none' }}
