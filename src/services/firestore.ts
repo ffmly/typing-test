@@ -40,7 +40,7 @@ export const getTopScores = async (limitCount: number = 100, mode: number = 30) 
     const querySnapshot = await getDocs(scoresQuery);
     // Filter by mode in case Firestore doesn't filter on orderBy
     return querySnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .map(doc => ({ id: doc.id, ...(doc.data() as Score) }))
       .filter((score: any) => score.mode === mode) as Score[];
   } catch (error) {
     console.error('Error fetching scores:', error);
@@ -56,35 +56,40 @@ export const addSampleScores = async () => {
       username: 'Speed Demon',
       wpm: 120,
       accuracy: 98,
-      mode: 30
+      mode: 30,
+      score: 118
     },
     {
       userId: 'sample2',
       username: 'Typing Master',
       wpm: 115,
       accuracy: 97,
-      mode: 30
+      mode: 30,
+      score: 112
     },
     {
       userId: 'sample3',
       username: 'Keyboard Warrior',
       wpm: 110,
       accuracy: 96,
-      mode: 60
+      mode: 60,
+      score: 105
     },
     {
       userId: 'sample4',
       username: 'Fast Fingers',
       wpm: 105,
       accuracy: 95,
-      mode: 60
+      mode: 60,
+      score: 100
     },
     {
       userId: 'sample5',
       username: 'Quick Typist',
       wpm: 100,
       accuracy: 94,
-      mode: 30
+      mode: 30,
+      score: 94
     }
   ];
 
@@ -109,7 +114,7 @@ export const getUserBestResults = async (userId: string) => {
     );
     const querySnapshot = await getDocs(scoresQuery);
     const userScores = querySnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .map(doc => ({ id: doc.id, ...(doc.data() as Score) }))
       .filter((score: any) => score.userId === userId);
     // Get best score per mode (by score)
     const bestByMode: { [mode: number]: any } = {};
@@ -139,7 +144,7 @@ export const getUserByUsername = async (username: string) => {
     );
     const querySnapshot = await getDocs(scoresQuery);
     const userDoc = querySnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .map(doc => ({ id: doc.id, ...(doc.data() as Score) }))
       .find((score: any) => score.username.toLowerCase() === username.toLowerCase());
     if (!userDoc) return null;
     return { userId: userDoc.userId, username: userDoc.username };
@@ -198,7 +203,7 @@ export const getUserAllScores = async (userId: string) => {
       orderBy('timestamp', 'asc')
     );
     const querySnapshot = await getDocs(scoresQuery);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Score) }));
   } catch (error) {
     console.error('Error fetching all user scores:', error);
     return [];
@@ -216,7 +221,7 @@ export const getUserLeaderboardRank = async (username: string, mode: number) => 
     );
     const querySnapshot = await getDocs(scoresQuery);
     const scores = querySnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .map(doc => ({ id: doc.id, ...(doc.data() as Score) }))
       .filter((score: any) => score.mode === mode);
     // Group by username and keep only the highest score for each user
     const bestScoresMap = new Map();
