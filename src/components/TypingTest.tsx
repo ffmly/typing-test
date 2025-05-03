@@ -280,7 +280,7 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
           spellCheck={false}
         />
         <div
-          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-col gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-hidden dark:shadow-none"
+          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-col gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-y-auto dark:shadow-none h-48 sm:h-auto hide-scrollbar"
           style={{ wordBreak: 'break-word', lineHeight: '2.2rem', letterSpacing: '0.03em', border: 'none', boxShadow: 'none', outline: 'none', background: 'none' }}
         >
           {lines.map((lineWords, lineIdx) => {

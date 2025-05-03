@@ -18,9 +18,9 @@ interface TopBarProps {
 
 const TopBar = ({ mode, setMode, onSettingsClick, onLeaderboardClick, onTypeClick, onProfileClick, punctuation, setPunctuation, numbers, setNumbers, showLeaderboard, showProfile, hideIcons }: TopBarProps) => {
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 flex flex-row items-center justify-between px-1 py-1 border-b shadow-md sm:px-8 sm:py-3"
+    <nav className="fixed top-0 left-0 w-full z-50 flex flex-row items-center justify-between px-1 py-1 border-b shadow-md sm:px-8 sm:py-3 overflow-x-auto"
       style={{ background: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>
-      <div className="flex items-center gap-1 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         <span
           className="flex items-center gap-1 sm:gap-2 text-base sm:text-2xl font-bold tracking-tight cursor-pointer select-none px-1 sm:px-3 py-0.5 sm:py-1 text-[var(--color-primary)]"
           onClick={onTypeClick}
@@ -41,7 +41,7 @@ const TopBar = ({ mode, setMode, onSettingsClick, onLeaderboardClick, onTypeClic
           <InformationCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2 text-[var(--color-primary)]" />
         </div>
       </div>
-      <div className={hideIcons ? 'fade-icons' : ''} style={{ display: 'flex', alignItems: 'center', gap: '4px', transition: 'opacity 0.5s', opacity: hideIcons ? 0 : 1 }}>
+      <div className={hideIcons ? 'fade-icons' : ''} style={{ display: 'flex', alignItems: 'center', gap: '2px', transition: 'opacity 0.5s', opacity: hideIcons ? 0 : 1, minWidth: 0 }}>
         {!(showLeaderboard || showProfile) && (
           <>
             <span className="hidden xs:inline text-[var(--color-primary)] font-bold text-xs sm:text-base">time</span>
@@ -75,10 +75,10 @@ const TopBar = ({ mode, setMode, onSettingsClick, onLeaderboardClick, onTypeClic
             </button>
           </>
         )}
-        <button onClick={onSettingsClick} className="ml-1 sm:ml-6 p-1 sm:p-2 rounded bg-[var(--color-card)] hover:bg-[var(--color-primary)] border border-[var(--color-primary)] transition-colors">
+        <button onClick={onSettingsClick} className="ml-1 sm:ml-6 p-1 sm:p-2 rounded bg-[var(--color-card)] hover:bg-[var(--color-primary)] border border-[var(--color-primary)] transition-colors flex-shrink-0">
           <Cog6ToothIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[var(--color-primary)] transition-colors" />
         </button>
-        <button onClick={onProfileClick} className={`ml-1 sm:ml-4 p-1 sm:p-2 rounded-full transition-colors duration-200 border-2 ${showProfile ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-[var(--color-primary)] font-bold shadow' : 'bg-[var(--color-card)] text-[var(--color-primary)] border-[var(--color-primary)] hover:border-[var(--color-primary)]'}`}>
+        <button onClick={onProfileClick} className={`ml-1 sm:ml-4 p-1 sm:p-2 rounded-full transition-colors duration-200 border-2 flex-shrink-0 ${showProfile ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-[var(--color-primary)] font-bold shadow' : 'bg-[var(--color-card)] text-[var(--color-primary)] border-[var(--color-primary)] hover:border-[var(--color-primary)]'}`}>
           <UserCircleIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
       </div>
