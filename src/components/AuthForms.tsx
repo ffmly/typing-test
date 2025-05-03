@@ -27,8 +27,8 @@ const AuthForms = ({ onSignIn, onSignUp }: AuthFormsProps) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-900">
-      <div className="bg-[var(--color-card)] max-w-md w-full px-4 py-10 rounded-2xl shadow-lg flex flex-col items-center">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[var(--color-bg)]">
+      <div className="bg-[var(--color-card)] max-w-md w-full px-4 py-10 rounded-2xl shadow-lg flex flex-col items-center border border-[var(--color-border)]">
         <h2 className="text-3xl font-extrabold text-center mb-6 tracking-tight text-[var(--color-text)]" style={{ letterSpacing: '-0.03em' }}>
           {isSignUp ? 'Sign Up' : 'Sign In'}
         </h2>
