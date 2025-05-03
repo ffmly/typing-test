@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { getTopScores, Score } from '../services/firestore';
-import AddSampleScores from './AddSampleScores';
 import { ClockIcon } from '@heroicons/react/24/outline';
 
 const Leaderboard = () => {
