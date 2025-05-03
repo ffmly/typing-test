@@ -1,4 +1,4 @@
-import { collection, addDoc, query, orderBy, limit as firestoreLimit, getDocs, Timestamp, where, updateDoc, getDocs as getDocsV9, doc } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, limit as firestoreLimit, getDocs, Timestamp, where, updateDoc, getDocs as getDocsV9, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export interface Score {
@@ -154,9 +154,16 @@ export const getUserByUsername = async (username: string) => {
   }
 };
 
-// Update username for all scores by userId
+// Update username for all scores by userId and user profile
 export const updateUsername = async (userId: string, newUsername: string) => {
   try {
+    // First check if username is already taken
+    const existingUser = await getUserByUsername(newUsername);
+    if (existingUser && existingUser.userId !== userId) {
+      return false; // Username already taken
+    }
+
+    // Update all scores with the new username
     const scoresQuery = query(
       collection(db, 'scores'),
       where('userId', '==', userId)
@@ -166,6 +173,21 @@ export const updateUsername = async (userId: string, newUsername: string) => {
       updateDoc(doc(db, 'scores', scoreDoc.id), { username: newUsername })
     );
     await Promise.all(batchUpdates);
+
+    // Update or create user profile
+    const userProfileRef = doc(db, 'userProfiles', userId);
+    const userProfileDoc = await getDoc(userProfileRef);
+    
+    if (userProfileDoc.exists()) {
+      await updateDoc(userProfileRef, { username: newUsername });
+    } else {
+      await setDoc(userProfileRef, { 
+        username: newUsername,
+        userId: userId,
+        createdAt: Timestamp.now()
+      });
+    }
+
     return true;
   } catch (error) {
     console.error('Error updating username:', error);
@@ -173,9 +195,17 @@ export const updateUsername = async (userId: string, newUsername: string) => {
   }
 };
 
-// Get the latest username for a userId from scores
+// Get the current username from user profile
 export const getCurrentUsername = async (userId: string) => {
   try {
+    const userProfileRef = doc(db, 'userProfiles', userId);
+    const userProfile = await getDoc(userProfileRef);
+    
+    if (userProfile.exists()) {
+      return userProfile.data().username;
+    }
+
+    // If no profile exists, try to get from most recent score
     const scoresQuery = query(
       collection(db, 'scores'),
       where('userId', '==', userId),
@@ -185,6 +215,8 @@ export const getCurrentUsername = async (userId: string) => {
     const querySnapshot = await getDocs(scoresQuery);
     if (!querySnapshot.empty) {
       const doc = querySnapshot.docs[0].data();
+      // Create user profile with the username from score
+      await setDoc(userProfileRef, { username: doc.username });
       return doc.username;
     }
     return null;

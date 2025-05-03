@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { saveScore } from '../services/firestore';
+import { saveScore, getCurrentUsername } from '../services/firestore';
 
 // Large word list for random generation
 const WORDS = [
@@ -137,6 +137,35 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
 
   // Character-based stats and accuracy (MonkeyType style)
   const calculateStats = (currentInput: string) => {
+    const wordsArr = words.split(' ');
+    const inputWords = currentInput.split(' ');
+    let totalChars = 0;
+    let correctChars = 0;
+
+    // Completed words (except current)
+    for (let w = 0; w < inputWords.length - 1; w++) {
+      const word = wordsArr[w] || '';
+      const inputWord = inputWords[w] || '';
+      const maxLen = Math.max(word.length, inputWord.length);
+      for (let c = 0; c < maxLen; c++) {
+        totalChars++;
+        if (inputWord[c] === word[c]) {
+          correctChars++;
+        }
+        // else: incorrect or missing char
+      }
+    }
+    // Current word (per-character, only up to input length)
+    const currentWordIdx = inputWords.length - 1;
+    const currentWord = wordsArr[currentWordIdx] || '';
+    const currentInputWord = inputWords[currentWordIdx] || '';
+    for (let c = 0; c < currentInputWord.length; c++) {
+      totalChars++;
+      if (currentInputWord[c] === currentWord[c]) {
+        correctChars++;
+      }
+    }
+    const currentAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
     // WPM: (characters typed / 5) / elapsedMinutes
     const charsTyped = currentInput.length;
     let elapsedMs = 0;
@@ -147,15 +176,6 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
     }
     const elapsedMinutes = elapsedMs > 0 ? elapsedMs / 1000 / 60 : (mode - timeLeft) / 60;
     const currentWpm = elapsedMinutes > 0 ? Math.round((charsTyped / 5) / elapsedMinutes) : 0;
-
-    // Character-based accuracy
-    let correctChars = 0;
-    for (let i = 0; i < currentInput.length; i++) {
-      if (currentInput[i] === words[i]) correctChars++;
-    }
-    const currentAccuracy = charsTyped > 0 ? Math.round((correctChars / charsTyped) * 100) : 100;
-
-    // Score: WPM * (Accuracy / 100)
     const currentScore = Math.round(currentWpm * (currentAccuracy / 100));
     setWpm(currentWpm);
     setAccuracy(currentAccuracy);
@@ -166,12 +186,12 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
     setIsActive(false);
     if (onTypingActive) onTypingActive(false);
     setShowResults(true);
-    if (user && accuracy >= 80 && wpm >= 10) {
+    if (user) {  // Only check if user is logged in
       try {
-        const username = user.email ? user.email.split('@')[0] : 'Anonymous';
+        const username = await getCurrentUsername(user.uid) || (user.email ? user.email.split('@')[0] : 'Anonymous');
         await saveScore({
           userId: user.uid,
-          username: username,
+          username,
           wpm,
           accuracy,
           mode,
@@ -201,28 +221,11 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
 
   // Improved typing area: highlight correct/incorrect letters, show caret, highlight current character
   const renderTypingText = () => {
-    // Group words into lines of 6 words per line
     const wordsArr = words.split(' ');
-    const wordsPerLine = 6;
-    const lines = [];
-    for (let i = 0; i < wordsArr.length; i += wordsPerLine) {
-      lines.push(wordsArr.slice(i, i + wordsPerLine).join(' '));
-    }
-    // Find the current line index
-    const currentCharIdx = input.length;
-    // Calculate which word the caret is in
-    let charCount = 0;
-    let currentLineIdx = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (currentCharIdx < charCount + lines[i].length + 1) { // +1 for the space/newline
-        currentLineIdx = i;
-        break;
-      }
-      charCount += lines[i].length + 1;
-    }
-    // Show 3 lines: current, previous, next
-    const visibleLines = lines.slice(Math.max(0, currentLineIdx - 1), currentLineIdx + 2);
-    let charGlobalIdx = Math.max(0, lines.slice(0, Math.max(0, currentLineIdx - 1)).reduce((acc, l) => acc + l.length + 1, 0));
+    const inputWords = input.split(' ');
+    const currentWordIdx = inputWords.length - 1;
+    let charGlobalIdx = 0;
+
     return (
       <div
         ref={typingAreaRef}
@@ -232,28 +235,68 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
         onKeyDown={handleKeyDown}
       >
         <div
-          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-col gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-hidden dark:shadow-none"
+          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-wrap gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-hidden dark:shadow-none"
           style={{ wordBreak: 'break-word', lineHeight: '2.2rem', letterSpacing: '0.03em', border: 'none', boxShadow: 'none', outline: 'none', background: 'none' }}
         >
-          {visibleLines.map((line, lineIdx) => (
-            <div key={lineIdx} className="flex flex-row flex-wrap gap-x-0">
-              {line.split('').map((char, cIdx) => {
-                const globalIdx = charGlobalIdx;
-                let style = '';
-                if (input.length > globalIdx) {
-                  style = input[globalIdx] === char ? 'text-green-400' : 'text-red-400 underline';
-                } else if (input.length === globalIdx && isActive) {
-                  style = 'border-l-4 border-yellow-400 animate-pulse'; // improved caret
-                }
-                charGlobalIdx++;
-                return (
-                  <span key={cIdx} className={style}>
-                    {char === ' ' ? '\u00A0' : char}
-                  </span>
-                );
-              })}
-            </div>
-          ))}
+          {wordsArr.map((word, wIdx) => {
+            let chars = word.split('');
+            let inputWord = inputWords[wIdx] || '';
+
+            // Previous words: highlight per character, missing chars as red
+            if (wIdx < currentWordIdx) {
+              return (
+                <span key={wIdx} className="mr-2">
+                  {chars.map((char, cIdx) => {
+                    let style = '';
+                    if (cIdx < inputWord.length) {
+                      style = inputWord[cIdx] === char ? 'text-green-400' : 'text-red-400 underline';
+                    } else {
+                      style = 'text-red-400 underline'; // missing char is red
+                    }
+                    return (
+                      <span key={cIdx} className={style}>{char}</span>
+                    );
+                  })}
+                  {/* Show extra chars if user overtyped */}
+                  {inputWord.length > chars.length && inputWord.slice(chars.length).split('').map((char, idx) => (
+                    <span key={chars.length + idx} className="text-red-400 underline">{char}</span>
+                  ))}
+                </span>
+              );
+            }
+
+            // Current word: compare per character
+            if (wIdx === currentWordIdx) {
+              return (
+                <span key={wIdx} className="mr-2">
+                  {chars.map((char, cIdx) => {
+                    let style = '';
+                    if (cIdx < inputWord.length) {
+                      style = inputWord[cIdx] === char ? 'text-green-400' : 'text-red-400 underline';
+                    } else if (cIdx === inputWord.length && isActive) {
+                      style = 'border-l-4 border-yellow-400 animate-pulse'; // caret
+                    }
+                    return (
+                      <span key={cIdx} className={style}>
+                        {char}
+                      </span>
+                    );
+                  })}
+                  {/* Show extra chars if user overtyped */}
+                  {inputWord.length > chars.length && inputWord.slice(chars.length).split('').map((char, idx) => (
+                    <span key={chars.length + idx} className="text-red-400 underline">{char}</span>
+                  ))}
+                </span>
+              );
+            }
+
+            // Future words: neutral
+            return (
+              <span key={wIdx} className="mr-2 text-gray-400">
+                {word}
+              </span>
+            );
+          })}
         </div>
       </div>
     );

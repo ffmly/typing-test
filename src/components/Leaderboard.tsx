@@ -12,6 +12,7 @@ const Leaderboard = () => {
 
   const fetchScores = async (selectedMode: number) => {
     try {
+      setLoading(true);
       const scoresData = await getTopScores(100, selectedMode);
       // Group by username and keep only the highest score for each user
       const bestScoresMap = new Map();
@@ -31,17 +32,8 @@ const Leaderboard = () => {
     }
   };
 
-  // Refresh scores every 5 seconds
+  // Only fetch scores when mode changes or component mounts
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchScores(mode);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [mode]);
-
-  useEffect(() => {
-    setLoading(true);
     fetchScores(mode);
     setCurrentPage(1);
   }, [mode]);

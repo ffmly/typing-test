@@ -66,14 +66,22 @@ const ProfilePage = ({ onBack }: { onBack: () => void }) => {
     e.preventDefault();
     setUsernameMsg('');
     if (!newUsername.trim() || !user) return;
-    const success = await updateUsername(user.uid, newUsername.trim());
-    if (success) {
-      getCurrentUsername(user.uid).then((uname) => {
-        setUsername(uname || newUsername.trim());
-      });
-      setUsernameMsg('Username updated!');
-      setNewUsername('');
-    } else {
+    
+    try {
+      const success = await updateUsername(user.uid, newUsername.trim());
+      if (success) {
+        setUsername(newUsername.trim());
+        setUsernameMsg('Username updated!');
+        setNewUsername('');
+        setEditingUsername(false);
+        
+        // Refresh best results to show updated username
+        getUserBestResults(user.uid).then(setBestResults);
+      } else {
+        setUsernameMsg('Username is already taken or update failed.');
+      }
+    } catch (error) {
+      console.error('Error updating username:', error);
       setUsernameMsg('Failed to update username.');
     }
   };
