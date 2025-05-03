@@ -55,6 +55,7 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const currentLineRef = useRef<HTMLDivElement | null>(null);
 
   // Always have enough words for the timer (estimate 2 words per second)
   const INITIAL_WORD_COUNT = 150;
@@ -110,6 +111,13 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
       handleTestComplete();
     }
   }, [input, words]);
+
+  // Scroll current line into view when it changes
+  useEffect(() => {
+    if (currentLineRef.current) {
+      currentLineRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [input]);
 
   // Handle key events for direct typing
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -234,8 +242,22 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
     const wordsArr = words.split(' ');
     const inputWords = input.split(' ');
     const currentWordIdx = inputWords.length - 1;
-   
-
+    // Group words into lines of 6 words per line
+    const wordsPerLine = 6;
+    const lines = [];
+    for (let i = 0; i < wordsArr.length; i += wordsPerLine) {
+      lines.push(wordsArr.slice(i, i + wordsPerLine));
+    }
+    // Find the current line index
+    let wordCount = 0;
+    let currentLineIdx = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (currentWordIdx < wordCount + lines[i].length) {
+        currentLineIdx = i;
+        break;
+      }
+      wordCount += lines[i].length;
+    }
     return (
       <div
         ref={typingAreaRef}
@@ -258,66 +280,74 @@ const TypingTest = forwardRef(({ mode, punctuation, numbers, onTypingActive }: T
           spellCheck={false}
         />
         <div
-          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-wrap gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-hidden dark:shadow-none"
+          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono flex flex-col gap-y-2 px-4 sm:px-8 py-10 my-8 w-full max-w-4xl mx-auto transition-colors duration-300 break-words max-h-56 overflow-hidden dark:shadow-none"
           style={{ wordBreak: 'break-word', lineHeight: '2.2rem', letterSpacing: '0.03em', border: 'none', boxShadow: 'none', outline: 'none', background: 'none' }}
         >
-          {wordsArr.map((word, wIdx) => {
-            let chars = word.split('');
-            let inputWord = inputWords[wIdx] || '';
-
-            // Previous words: highlight per character, missing chars as red
-            if (wIdx < currentWordIdx) {
-              return (
-                <span key={wIdx} className="mr-2">
-                  {chars.map((char, cIdx) => {
-                    let style = '';
-                    if (cIdx < inputWord.length) {
-                      style = inputWord[cIdx] === char ? 'text-green-400' : 'text-red-400 underline';
-                    } else {
-                      style = 'text-red-400 underline'; // missing char is red
-                    }
+          {lines.map((lineWords, lineIdx) => {
+            const isCurrentLine = lineIdx === currentLineIdx;
+            const lineRef = isCurrentLine ? currentLineRef : undefined;
+            // Calculate word indices for this line
+            const startWordIdx = lineIdx * wordsPerLine;
+            return (
+              <div key={lineIdx} ref={lineRef} className="flex flex-row flex-wrap gap-x-2">
+                {lineWords.map((word, wIdx) => {
+                  const globalWordIdx = startWordIdx + wIdx;
+                  let chars = word.split('');
+                  let inputWord = inputWords[globalWordIdx] || '';
+                  // Previous words: highlight per character, missing chars as red
+                  if (globalWordIdx < currentWordIdx) {
                     return (
-                      <span key={cIdx} className={style}>{char}</span>
-                    );
-                  })}
-                  {/* Show extra chars if user overtyped */}
-                  {inputWord.length > chars.length && inputWord.slice(chars.length).split('').map((char, idx) => (
-                    <span key={chars.length + idx} className="text-red-400 underline">{char}</span>
-                  ))}
-                </span>
-              );
-            }
-
-            // Current word: compare per character
-            if (wIdx === currentWordIdx) {
-              return (
-                <span key={wIdx} className="mr-2">
-                  {chars.map((char, cIdx) => {
-                    let style = '';
-                    if (cIdx < inputWord.length) {
-                      style = inputWord[cIdx] === char ? 'text-green-400' : 'text-red-400 underline';
-                    } else if (cIdx === inputWord.length && isActive) {
-                      style = 'border-l-4 border-yellow-400 animate-pulse'; // caret
-                    }
-                    return (
-                      <span key={cIdx} className={style}>
-                        {char}
+                      <span key={wIdx} className="mr-2">
+                        {chars.map((char, cIdx) => {
+                          let style = '';
+                          if (cIdx < inputWord.length) {
+                            style = inputWord[cIdx] === char ? 'text-green-400' : 'text-red-400 underline';
+                          } else {
+                            style = 'text-red-400 underline'; // missing char is red
+                          }
+                          return (
+                            <span key={cIdx} className={style}>{char}</span>
+                          );
+                        })}
+                        {/* Show extra chars if user overtyped */}
+                        {inputWord.length > chars.length && inputWord.slice(chars.length).split('').map((char, idx) => (
+                          <span key={chars.length + idx} className="text-red-400 underline">{char}</span>
+                        ))}
                       </span>
                     );
-                  })}
-                  {/* Show extra chars if user overtyped */}
-                  {inputWord.length > chars.length && inputWord.slice(chars.length).split('').map((char, idx) => (
-                    <span key={chars.length + idx} className="text-red-400 underline">{char}</span>
-                  ))}
-                </span>
-              );
-            }
-
-            // Future words: neutral
-            return (
-              <span key={wIdx} className="mr-2 text-gray-400">
-                {word}
-              </span>
+                  }
+                  // Current word: compare per character
+                  if (globalWordIdx === currentWordIdx) {
+                    return (
+                      <span key={wIdx} className="mr-2">
+                        {chars.map((char, cIdx) => {
+                          let style = '';
+                          if (cIdx < inputWord.length) {
+                            style = inputWord[cIdx] === char ? 'text-green-400' : 'text-red-400 underline';
+                          } else if (cIdx === inputWord.length && isActive) {
+                            style = 'border-l-4 border-yellow-400 animate-pulse'; // caret
+                          }
+                          return (
+                            <span key={cIdx} className={style}>
+                              {char}
+                            </span>
+                          );
+                        })}
+                        {/* Show extra chars if user overtyped */}
+                        {inputWord.length > chars.length && inputWord.slice(chars.length).split('').map((char, idx) => (
+                          <span key={chars.length + idx} className="text-red-400 underline">{char}</span>
+                        ))}
+                      </span>
+                    );
+                  }
+                  // Future words: neutral
+                  return (
+                    <span key={wIdx} className="mr-2 text-gray-400">
+                      {word}
+                    </span>
+                  );
+                })}
+              </div>
             );
           })}
         </div>
