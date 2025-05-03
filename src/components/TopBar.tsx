@@ -42,33 +42,37 @@ const TopBar = ({ mode, setMode, onSettingsClick, onLeaderboardClick, onTypeClic
         </div>
       </div>
       <div className={hideIcons ? 'fade-icons' : ''} style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'opacity 0.5s', opacity: hideIcons ? 0 : 1 }}>
-        <span className="text-[var(--color-primary)] font-bold">time</span>
-        <button
-          className={`ml-4 px-2 py-1 rounded ${mode === 30 ? 'bg-[var(--color-primary)] text-[var(--color-bg)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border border-[var(--color-primary)]'}`}
-          onClick={() => setMode(30)}
-        >
-          30
-        </button>
-        <button
-          className={`ml-2 px-2 py-1 rounded ${mode === 60 ? 'bg-[var(--color-primary)] text-[var(--color-bg)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border border-[var(--color-primary)]'}`}
-          onClick={() => setMode(60)}
-        >
-          60
-        </button>
-        <span className="text-gray-400">@</span>
-        <button
-          className={`px-2 py-1 rounded border-2 transition-colors duration-200 ${punctuation ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-[var(--color-primary)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border-[var(--color-primary)] hover:border-[var(--color-primary)]'}`}
-          onClick={() => setPunctuation(!punctuation)}
-        >
-          punctuation
-        </button>
-        <span className="text-gray-400">#</span>
-        <button
-          className={`px-2 py-1 rounded border-2 transition-colors duration-200 ${numbers ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-[var(--color-primary)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border-[var(--color-primary)] hover:border-[var(--color-primary)]'}`}
-          onClick={() => setNumbers(!numbers)}
-        >
-          numbers
-        </button>
+        {!(showLeaderboard || showProfile) && (
+          <>
+            <span className="text-[var(--color-primary)] font-bold">time</span>
+            <button
+              className={`ml-4 px-2 py-1 rounded ${mode === 30 ? 'bg-[var(--color-primary)] text-[var(--color-bg)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border border-[var(--color-primary)]'}`}
+              onClick={() => setMode(30)}
+            >
+              30
+            </button>
+            <button
+              className={`ml-2 px-2 py-1 rounded ${mode === 60 ? 'bg-[var(--color-primary)] text-[var(--color-bg)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border border-[var(--color-primary)]'}`}
+              onClick={() => setMode(60)}
+            >
+              60
+            </button>
+            <span className="text-gray-400">@</span>
+            <button
+              className={`px-2 py-1 rounded border-2 transition-colors duration-200 ${punctuation ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-[var(--color-primary)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border-[var(--color-primary)] hover:border-[var(--color-primary)]'}`}
+              onClick={() => setPunctuation(!punctuation)}
+            >
+              punctuation
+            </button>
+            <span className="text-gray-400">#</span>
+            <button
+              className={`px-2 py-1 rounded border-2 transition-colors duration-200 ${numbers ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-[var(--color-primary)] font-bold' : 'bg-[var(--color-card)] text-[var(--color-primary)] border-[var(--color-primary)] hover:border-[var(--color-primary)]'}`}
+              onClick={() => setNumbers(!numbers)}
+            >
+              numbers
+            </button>
+          </>
+        )}
         <button onClick={onSettingsClick} className="ml-6 p-2 rounded bg-[var(--color-card)] hover:bg-[var(--color-primary)] border border-[var(--color-primary)] transition-colors">
           <Cog6ToothIcon className="w-6 h-6 text-[var(--color-primary)] transition-colors" />
         </button>
