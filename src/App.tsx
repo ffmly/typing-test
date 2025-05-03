@@ -9,7 +9,7 @@ import ProfilePage from './components/ProfilePage'
 import './App.css'
 
 const AppContent = ({ theme, setTheme }: { theme: string, setTheme: (theme: string) => void }) => {
-  const { user, signIn, signUp, logout } = useAuth()
+  const { user, signIn, signUp } = useAuth()
   const [showSettings, setShowSettings] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
