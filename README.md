@@ -5,12 +5,12 @@ A modern, MonkeyType-inspired typing speed test web app built with React, TypeSc
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
-[![Stars](https://img.shields.io/github/stars/yourusername/ryuu-typing-speed?style=social)](https://github.com/yourusername/ryuu-typing-speed)
+[![Stars](https://img.shields.io/github/stars/yourusername/ryuu-typing-speed?style=social)](https://github.com/ffmly/typing-test)
 
 ---
 
 ## 🚀 Live Demo
-> [Try it online!](https://your-demo-link.com) <!-- Replace with your deployed link -->
+> [Try it online!]((https://typingryuu.vercel.app/) <!-- Replace with your deployed link -->
 
 ---
 
