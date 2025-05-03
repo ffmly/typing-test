@@ -10,7 +10,7 @@ A modern, MonkeyType-inspired typing speed test web app built with React, TypeSc
 ---
 
 ## 🚀 Live Demo
-> [Try it online!]([https://typingryuu.vercel.app/]) <!-- Replace with your deployed link -->
+> [Try it online!]((https://typingryuu.vercel.app/) <!-- Replace with your deployed link -->
 
 ---
 
