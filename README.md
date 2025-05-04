@@ -94,7 +94,7 @@ A: Yes! MIT licensed. Contributions are welcome.
    ```bash
    npm run dev
    ```
-   The app will be available at [http://localhost:5173](http://localhost:5173)
+  
 
 ---
 
